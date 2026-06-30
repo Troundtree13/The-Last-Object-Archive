@@ -100,6 +100,9 @@ h1.brand .thin{font-weight:300;color:var(--ink2)}
 .pill.amber{border-color:#6b5524;color:var(--amber)}
 .ytbadge{position:absolute;top:8px;right:8px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;background:rgba(193,58,51,.85);border:1px solid var(--crimson);border-radius:2px}
 .pill.seal{border-color:var(--blue2);color:var(--blue);background:rgba(10,11,13,.85)}
+.pill.seal.next{border-color:var(--blue);color:var(--cyan)}
+.card.sealed.next{border-color:var(--blue2);box-shadow:0 0 22px rgba(95,168,211,.12)}
+.card.sealed.next .lk{color:var(--cyan)}
 .card.sealed{cursor:default}
 .card.sealed:hover{transform:none;border-color:var(--blue2);box-shadow:0 0 18px rgba(95,168,211,.08)}
 .card.sealed .thumb{display:flex;align-items:center;justify-content:center;background:radial-gradient(60% 50% at 50% 42%,rgba(60,90,110,.16),transparent),repeating-linear-gradient(45deg,#0c0e11,#0c0e11 9px,#0f1318 9px,#0f1318 18px)}
@@ -361,7 +364,7 @@ function render(){
   const grid=$('#grid'); grid.innerHTML='';
   list.forEach(o=>grid.appendChild(card(o)));
   if(!anyFilter){
-    SEALED.forEach(o=>grid.appendChild(sealedCard(o)));          // scheduled, awaiting broadcast
+    SEALED.forEach((o,i)=>grid.appendChild(sealedCard(o,i===0)));  // only the next one counts down
     ARCHIVE.pending.forEach(p=>grid.appendChild(redCard(p)));    // unscheduled pool
   }
   $('#idxCount').textContent='AVAILABLE '+list.length+' / '+RELEASED.length+(anyFilter?' (FILTERED)':' · '+SEALED.length+' SEALED · '+ARCHIVE.pending.length+' PENDING');
@@ -373,10 +376,13 @@ function card(o){
   <div class="cap"><div class="nm">${o.name}</div><div class="id"><span>ENTRY ${o.entry}</span><span>${o.id}</span></div></div>`;
   return d;
 }
-function sealedCard(o){     // name visible; everything else withheld until releaseAt
-  const d=document.createElement('div'); d.className='card sealed';
+function sealedCard(o,isNext){   // name visible; everything else withheld until releaseAt
+  const d=document.createElement('div'); d.className='card sealed'+(isNext?' next':'');
   d.title='Sealed until broadcast — '+fmtRelease(o.releaseAt);
-  d.innerHTML=`<div class="thumb"><span class="pill seal">SEALED</span><div class="lk"><span class="ico">⬡</span>CLASSIFIED<div class="cd" data-r="${o.releaseAt}">T− --:--:--</div><div class="u">UNSEALS<br><b>${fmtRelease(o.releaseAt)}</b></div></div></div>
+  const lk = isNext
+    ? `<span class="pill seal next">▶ NEXT</span><div class="lk"><span class="ico">⬡</span>NEXT RECOVERY<div class="cd" data-r="${o.releaseAt}">T− --:--:--</div><div class="u">UNSEALS<br><b>${fmtRelease(o.releaseAt)}</b></div></div>`
+    : `<span class="pill seal">SEALED</span><div class="lk"><span class="ico">⬡</span>CLASSIFIED<div class="u">UNSEALS<br><b>${fmtRelease(o.releaseAt)}</b></div></div>`;
+  d.innerHTML=`<div class="thumb">${lk}</div>
   <div class="cap"><div class="nm">${o.name}</div><div class="id"><span>ENTRY ${o.entry}</span><span class="redact">ID-███-${o.entry}</span></div></div>`;
   return d;
 }
